@@ -38,7 +38,7 @@ def get_weather_me() -> None:
     request = geocoder.ip("me")
     status = request.status_code
     city_and_country = request.city + ", " + request.country 
-    if request.status_code == HTTPStatus.OK:
+    if status == HTTPStatus.OK:
         get_weather_and_print(city_and_country)
     else:
         raise HTTPError(status)
