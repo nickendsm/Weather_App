@@ -1,9 +1,9 @@
 import requests
 import geocoder
 from http import HTTPStatus
-from custom_and_http_errors import HTTPError
-from making_response_and_log import get_weather_and_write_in_history
-from msges_and_consts import WEATHER_SITE, APPID
+from custom_errors import HTTPError
+from weather_response_make import get_and_log_weather
+from utils import WEATHER_SITE, APPID
 
 
 def get_weather_and_print(city: str) -> None:
@@ -23,10 +23,17 @@ def get_weather_and_print(city: str) -> None:
     ).json()
     status = int(request_json["cod"])
     if status == HTTPStatus.OK:
-        weather = get_weather_and_write_in_history(request_json)
+        weather = get_and_log_weather(request_json)
         print(weather)
     else:
         raise HTTPError(status)
+
+
+def get_location() -> tuple:
+    request = geocoder.ip("me")
+    status = request.status_code
+    city = request.city
+    return city, status
 
 
 def get_weather_me() -> None:
@@ -35,10 +42,8 @@ def get_weather_me() -> None:
         Местоположение определяется по IP библиотекой geocoder.
         Вызывается функция get_weather, если удалось определить местоположение.
     """
-    request = geocoder.ip("me")
-    status = request.status_code
-    city_and_country = request.city + ", " + request.country 
+    city, status = get_location()
     if status == HTTPStatus.OK:
-        get_weather_and_print(city_and_country)
+        get_weather_and_print(city)
     else:
         raise HTTPError(status)

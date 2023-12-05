@@ -1,5 +1,6 @@
-from msges_and_consts import START_MESSAGE
-from trace_and_apply_funcs import applying_function
+from utils import START_MESSAGE
+from custom_errors import MyError
+from trace_and_apply_funcs import execute_command
 
 
 def main():
@@ -11,11 +12,13 @@ def main():
     flag = 1
     while(flag):
         try:
-            input_command = input().strip().lower()
-            flag = applying_function(input_command)
+            input_command = input().strip().lower().split(" ")
+            flag = execute_command(input_command)
+        except MyError as error:
+            print(error.message)
         except Exception as error:
-             print(error.message)
-             continue
+            print(error)
+        continue
 
 
 if __name__ == "__main__":

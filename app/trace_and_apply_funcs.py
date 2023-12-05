@@ -1,17 +1,18 @@
 from enum import StrEnum
-from help_and_history_funcs import get_and_print_history, print_help_text
+from utils import print_help_text
+from history_funcs import print_history
 from requests_funcs import get_weather_and_print, get_weather_me
-from custom_and_http_errors import BadArgs, UnknownCommand
-from msges_and_consts import CONTINUE, EXIT
+from custom_errors import BadArgs, UnknownCommand
+from utils import CONTINUE, EXIT
 
 
 class Command(StrEnum):
     GET_WEATHER_BY_CITY = "-get"
     GET_WEATHER_OF_MINE = "-get_me"
-    HISTORY             = "-history"
-    HELP                = "-help"
-    EXIT                = "-exit"
-    UNKNOWN             = "unknown"
+    HISTORY = "-history"
+    HELP = "-help"
+    EXIT = "-exit"
+    UNKNOWN = "unknown"
 
 
 def trace_command(command: Command) -> tuple:
@@ -22,7 +23,7 @@ def trace_command(command: Command) -> tuple:
     return {
         Command.GET_WEATHER_BY_CITY: (get_weather_and_print, str), 
         Command.GET_WEATHER_OF_MINE: (get_weather_me, None), 
-        Command.HISTORY: (get_and_print_history, int),
+        Command.HISTORY: (print_history, int),
         Command.HELP: (print_help_text, None),
         Command.EXIT: (0, None)
     }.get(command, Command.UNKNOWN)
@@ -34,7 +35,7 @@ def parse_args(args: list, types: tuple) -> list:
     """
     parsed_args = []
     try:
-        for i in range(len(types)):
+        for i in range(len(args)):
             parsed_args.append(types[i](args[i]))
         return parsed_args
     except Exception:
@@ -53,26 +54,24 @@ def identify_command_and_args(splitted_input: list) -> tuple:
     except Exception:
         raise UnknownCommand
     
-def applying_function(input_line: str) -> bool:
+
+def execute_command(input_list: list) -> bool:
     """
     Сопоставляет команду пользователя с командой в программе, вызывает ее
     Возвращает bool-значение как флаг, завершить работу программы или нет
     """
-    splitted_input = input_line.split(" ")
-    action_and_types = identify_command_and_args(splitted_input)
+    action_and_types = identify_command_and_args(input_list)
     action = action_and_types[0]
-    match action:
-        case 0:
-            return EXIT
-        case _:
-            types_needed = action_and_types[1:]
-            args = splitted_input[1:]
-            if types_needed[0] != None:
-                parsed_args = parse_args(args, types_needed)
-                try:
-                    action(*parsed_args)
-                except TypeError:
-                    raise BadArgs
-            else:
-                action()
-    return CONTINUE
+    if action:
+        types_needed = action_and_types[1:]
+        args = input_list[1:]
+        if types_needed[0] != None:
+            parsed_args = parse_args(args, types_needed)
+            try:
+                action(*parsed_args)
+            except TypeError:
+                raise BadArgs
+        else:
+            action()
+        return CONTINUE
+    return EXIT
